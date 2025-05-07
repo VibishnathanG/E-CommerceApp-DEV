@@ -5,7 +5,6 @@ pipeline {
         MAVEN_HOME = tool 'Default Maven'
         SBOM_OUTPUT = 'sbom.json'
         TARGET_DIR = 'target'
-        SONAR_LOG_LEVEL = 'DEBUG'
     }
 
     stages {
@@ -13,17 +12,16 @@ pipeline {
             steps {
                 echo 'Pulling source code...'
                 withCredentials([usernamePassword(credentialsId: 'git-creds', passwordVariable: 'GIT_PASS', usernameVariable: 'GIT_USER')]) {
-                    dir('Devsecops-Pipeline') {
-                        sh '''
-                            pwd
-                            echo "Removing existing Build directory..."
-                            git clone ${GIT_URL}
-                            cd E-CommerceApp-DEV/
-                            ls -lrt
-                            echo "Source code pulled successfully"
-                            pwd
-                        '''
-                    }
+                    sh '''
+                        pwd
+                        echo "Removing existing Build directory..."
+                        rm -rf Devsecops-Pipeline* || true
+                        echo "Build directory removed successfully"
+                        git clone ${GIT_URL}
+                        cd E-CommerceApp-DEV/
+                        ls -lrt
+                        echo "Source code pulled successfully"
+                    '''
                 }
             }
         }
@@ -31,28 +29,23 @@ pipeline {
         stage('Starting SAST Scan on SonarQube for E-CommerceApp-DEV') {
             steps {
                 echo 'Starting SAST scan...'
-                dir('Devsecops-Pipeline/E-CommerceApp-DEV') {
-                    sh 'ls -lrt'
-                    withSonarQubeEnv('SonarQube') {
-                        sh "${MAVEN_HOME} clean install verify sonar:sonar -Dsonar.projectKey=E-CommerceApp-DEV -Dsonar.projectName='E-CommerceApp-DEV'"
-                    }
-                    sh 'ls -lrt'
-                }
+                sh '''
+                    ${MAVEN_HOME} clean install verify sonar:sonar -Dsonar.projectKey=E-CommerceApp-DEV -Dsonar.projectName='E-CommerceApp-DEV'
+                    cd  target
+                    ls -lrt
+                '''
             }
         }
 
         stage('SBOM Scan With Trivy') {
             steps {
                 echo 'Running Trivy SBOM scan...'
-                dir('Devsecops-Pipeline/E-CommerceApp-DEV') {
-                    sh 'ls -lrt'
-                    sh 'pwd'
-                    sh '''
-                        mkdir reports
-                        trivy fs --format cyclonedx --output "reports/${SBOM_OUTPUT}" "${TARGET_DIR}/jakartaee9-servlet.war"
-                        echo "SBOM scan completed successfully"
-                    '''
-                }
+                sh '''
+                    pwd
+                    mkdir reports
+                    trivy fs --format cyclonedx --output "reports/${SBOM_OUTPUT}" "${TARGET_DIR}/jakartaee9-servlet.war"
+                    echo "SBOM scan completed successfully"
+                '''
             }
         }
 
@@ -69,20 +62,18 @@ pipeline {
         stage("Tomcat Deployment - Copying WAR file to Tomcat") {
             steps {
                 echo 'Deploying WAR file to Tomcat...'
-                dir('Devsecops-Pipeline/E-CommerceApp-DEV') {
-                    sh '''
-                        echo "Stopping Tomcat..."
-                        sudo tomcatdown
-                        echo "Tomcat stopped successfully"
-                        echo "Copying WAR file to Tomcat..."
-                        sudo cp ${TARGET_DIR}/*.war /opt/tomcat/webapps/
-                        echo "WAR file copied successfully"
-                        sudo tomcatup
-                        echo "Starting Tomcat..."
-                        echo "Tomcat started successfully"
-                        echo "Deployment completed successfully"
-                    '''
-                }
+                sh '''
+                    echo "Stopping Tomcat..."
+                    sudo tomcatdown
+                    echo "Tomcat stopped successfully"
+                    echo "Copying WAR file to Tomcat..."
+                    sudo cp ${TARGET_DIR}/*.war /opt/tomcat/webapps/
+                    echo "WAR file copied successfully"
+                    sudo tomcatup
+                    echo "Starting Tomcat..."
+                    echo "Tomcat started successfully"
+                    echo "Deployment completed successfully"
+                '''
             }
         }
     }
@@ -90,11 +81,10 @@ pipeline {
     post {
         always {
             echo 'Cleaning up...'
-            dir('Devsecops-Pipeline') {
-                sh '''
-                    echo "Cleanup completed"
-                '''
-            }
+            sh '''
+                rm -rf Devsecops-Pipeline*
+                echo "Cleanup completed"  
+            '''
         }
 
         success {
