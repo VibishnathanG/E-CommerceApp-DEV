@@ -8,7 +8,7 @@ pipeline {
         TARGET_DIR = 'target'
         SONAR_HOST_URL = 'http://localhost:9000'
         NEXUS_URL = 'http://10.0.14.233:8081'
-        NEXUS_REPO = 'http://10.0.14.233:8081/repository/maven-releases/'
+        NEXUS_REPO = '/repository/maven-releases/'
         NEXUS_CREDENTIALS_ID = 'nexus-creds'
     }
 
@@ -71,7 +71,7 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: NEXUS_CREDENTIALS_ID, passwordVariable: 'NEXUS_PASS', usernameVariable: 'NEXUS_USER')]) {
                         sh '''
                             echo "Uploading WAR file to Nexus..."
-                            curl -v -u ${NEXUS_USER}:${NEXUS_PASS} --upload-file ${TARGET_DIR}/jakartaee9-servlet.war ${NEXUS_URL}/repository/${NEXUS_REPO}/jakartaee9-servlet.war
+                            curl -v -u ${NEXUS_USER}:${NEXUS_PASS} --upload-file ${TARGET_DIR}/jakartaee9-servlet.war http://13.233.73.72:8081/repository/maven-releases/
                         '''
                     }
                 }
