@@ -8,7 +8,7 @@ pipeline {
         TARGET_DIR = 'target'
         SONAR_HOST_URL = 'http://localhost:9000'
         NEXUS_URL = 'http://10.0.14.233:8081'
-        NEXUS_REPO = 'maven-releases'
+        NEXUS_REPO = 'http://10.0.14.233:8081/repository/maven-releases/'
         NEXUS_CREDENTIALS_ID = 'nexus-creds'
     }
 
