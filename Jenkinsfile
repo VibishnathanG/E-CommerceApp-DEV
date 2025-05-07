@@ -5,7 +5,7 @@ pipeline {
         GIT_URL = 'https://github.com/VibishnathanG/E-CommerceApp-DEV.git'
         MAVEN_HOME = tool 'Default Maven'
         SBOM_OUTPUT = 'sbom.json'
-        TARGET_DIR = '/var/lib/jenkins/workspace/Devsecops-Pipeline/targets'
+        TARGET_DIR = '/var/lib/jenkins/workspace/Devsecops-Pipeline/target'
     }
 
     stages {
