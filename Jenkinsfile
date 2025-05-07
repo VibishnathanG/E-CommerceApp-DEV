@@ -29,7 +29,7 @@ pipeline {
             steps {
                 echo 'Running SonarQube scan...'
                 dir('E-CommerceApp-DEV') {
-                    withCredentials([string(credentialsId: 'SonarQube', variable: 'SONAR_TOKEN')]) {
+                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                         sh '''
                             ${MAVEN_HOME} clean package verify sonar:sonar \
                             -Dsonar.projectKey=E-CommerceApp-DEV \
