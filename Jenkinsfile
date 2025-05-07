@@ -82,10 +82,12 @@ pipeline {
     post {
         always {
             echo 'Cleaning up...'
-            sh '''
-                rm -rf Devsecops-Pipeline*
-                echo "Cleanup completed"  
-            '''
+            node {
+                sh '''
+                    rm -rf Devsecops-Pipeline*
+                    echo "Cleanup completed"  
+                '''
+            }
         }
 
         success {
