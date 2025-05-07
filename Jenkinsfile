@@ -74,9 +74,7 @@ pipeline {
                             echo "Uploading WAR file to Nexus..."
                             ls -lrt
                             echo "WAR file path: ${TARGET_DIR}/jakartaee9-servlet.war"
-                            curl -v -u admin:vibishnathan \
-                                --upload-file ${TARGET_DIR}/jakartaee9-servlet.war \
-                               http://13.233.73.72:8081/repository/maven-releases/com.microsoft.example/jakartaee9-servlet/1.0-SNAPSHOT/jakartaee9-servlet.war
+                            curl -v -u admin:vibishnathan --upload-file target/jakartaee9-servlet.war http://13.233.73.72:8081/repository/maven-releases/com/microsoft/example/jakartaee9-servlet/1.0.2/jakartaee9-servlet-1.0.2.war
                         '''
                     }
                 }
