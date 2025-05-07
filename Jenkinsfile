@@ -10,6 +10,8 @@ pipeline {
                 echo 'Pulling source code...'
                 withCredentials([usernamePassword(credentialsId: 'git-creds', passwordVariable: 'GIT_PASS', usernameVariable: 'GIT_USER')]) {
                     sh '''
+                        echo "Removing existing Build directory..."
+                        rm -rf E-CommerceApp-DEV 2>/dev/null || true
                         git config --global credential.helper store
                         git clone https://${GIT_USER}:${GIT_PASS}@${GIT_URL#https://}
                         cd E-CommerceApp-DEV
