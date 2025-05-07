@@ -3,6 +3,8 @@ pipeline {
     environment {
         GIT_URL = 'https://github.com/VibishnathanG/E-CommerceApp-DEV.git'
         MAVEN_HOME = tool 'Default Maven'
+        SBOM_OUTPUT = 'sbom.json'
+        TARGET_DIR = 'E-CommerceApp-DEV/target/'
     }
     stages {
         stage('Git Pull Source Code') { 
@@ -25,22 +27,47 @@ pipeline {
                 echo 'Starting SAST scan...'
                 echo 'Starting SAST Scan on SonarQube...'
                 withSonarQubeEnv('SonarQube') {
-                    sh "${MAVEN_HOME} clean verify sonar:sonar -Dsonar.projectKey=E-CommerceApp-DEV -Dsonar.projectName='E-CommerceApp-DEV'"
+                    sh "${MAVEN_HOME} clean install verify sonar:sonar -Dsonar.projectKey=E-CommerceApp-DEV -Dsonar.projectName='E-CommerceApp-DEV'"
                 }
             }
         }
-        stage('Deploy') {
+        stage('SBOM Scan With Trivy') {
             steps {
-                echo 'Deploying...'
+                step{
+                    sh 'trivy sbom --format cyclonedx --output "$SBOM_OUTPUT" "$TARGET_DIR"'
+                }
             }
         }
+        stage('wait for SonarQube analysis') {
+            steps {
+                script {
+                    timeout(time: 10, unit: 'MINUTES') {
+                        waitForQualityGate abortPipeline: true
+                    }
+                }
+            }
+        }
+        stage('SonarQube Quality Gate') {
+            steps {
+                script {
+                    def qg = waitForQualityGate()
+                    if (qg.status != 'OK') {
+                        error "Pipeline aborted due to quality gate failure: ${qg.status}"
+                    } else {
+                        echo "Quality gate passed: ${qg.status}"
+                    }
+                }
+            }
+        }
+        
     }
+
     post {
         always {
             echo 'Cleaning up...'
             sh '''
-                cd E-CommerceApp-DEV
-                rm -rf .git
+                cd /var/lib/jenkins/workspace/Devsecops-Pipeline
+                rm -rf E-CommerceApp-DEV
                 echo "Cleanup completed"
             '''
         }
