@@ -65,18 +65,22 @@ pipeline {
             }
         }
         stage('upload Artifact to Nexus') {
-            steps {
+                steps {
                 echo 'Uploading artifact to Nexus...'
                 dir('E-CommerceApp-DEV') {
                     withCredentials([usernamePassword(credentialsId: NEXUS_CREDENTIALS_ID, passwordVariable: 'NEXUS_PASS', usernameVariable: 'NEXUS_USER')]) {
                         sh '''
                             echo "Uploading WAR file to Nexus..."
-                            curl -v -u ${NEXUS_USER}:${NEXUS_PASS} --upload-file ${TARGET_DIR}/jakartaee9-servlet.war ${NEXUS_URL}/${NEXUS_REPO}/com/microsoft/example/jakartaee9-servlet/1.0.0/jakartaee9-servlet-1.0.0.war
+                            curl -v -u ${NEXUS_USER}:${NEXUS_PASS} \
+                            --upload-file ${TARGET_DIR}/jakartaee9-servlet.war \
+                            ${NEXUS_URL}/repository/maven-releases/com.microsoft.example/jakartaee9-servlet/1.0-SNAPSHOT/jakartaee9-servlet-1.0.0.war
                         '''
                     }
                 }
             }
         }
+    }
+}
         stage('Tomcat Deployment - Copying WAR file to Tomcat') {
             steps {
                 echo 'Deploying WAR file...'
@@ -103,7 +107,7 @@ pipeline {
                 PUBLIC_IP=$(curl -s https://checkip.amazonaws.com)
                 echo "Access the application at: http://${PUBLIC_IP}:8090/jakartaee9-servlet"
                 echo "Access the SonarQube report at: http://${SONAR_HOST_URL}/dashboard?id=E-CommerceApp-DEV"
-                echo "Access SBOM report at: http://{PUBLIC_IP}:8080/reports/${SBOM_OUTPUT}"
+                echo "Access SBOM report at: http://${PUBLIC_IP}:8080/reports/${SBOM_OUTPUT}"
                 '''
 }
         failure {
