@@ -45,17 +45,27 @@ pipeline {
             }
         }
 
-        stage('SAST Scan Results') {
+        stage('SonarQube Quality Gate Check') {
             steps {
-                echo 'Displaying SAST scan results...'
-                script {
-                    def sonarReport = readFile("${WORKSPACE}/E-CommerceApp-DEV/target/sonar/report-task.txt")
-                    def reportUrl = sonarReport.find(/(?<=reportUrl=).+/)
-                    echo "SonarQube report URL: ${reportUrl}"
+                echo 'Checking SonarQube quality gate...'
+                timeout(time: 10, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
                 }
             }
         }
-
+        stage('sonar Quality gate') {
+            steps {
+                script {
+                    def qg = waitForQualityGate()
+                    if (qg.status != 'OK') {
+                        error "Pipeline aborted due to SonarQube quality gate failure: ${qg.status}"
+                    } else {
+                        echo "SonarQube quality gate passed: ${qg.status}"
+                    }
+                }
+            }
+        }
+        
         stage("Tomcat Deployment - Copying WAR file to Tomcat") {
             steps {
                 echo 'Deploying WAR file to Tomcat...'
