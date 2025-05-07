@@ -23,7 +23,7 @@ pipeline {
                 echo 'Starting SAST scan...'
                 echo 'Starting SAST Scan on SonarQube...'
                 withSonarQubeEnv('SonarQube') {
-                    sh "${MAVEN_HOME}/bin/mvn clean verify sonar:sonar -Dsonar.projectKey=E-CommerceApp-DEV -Dsonar.projectName='E-CommerceApp-DEV'"
+                    sh "${MAVEN_HOME} clean verify sonar:sonar -Dsonar.projectKey=E-CommerceApp-DEV -Dsonar.projectName='E-CommerceApp-DEV'"
                 }
             }
         }
