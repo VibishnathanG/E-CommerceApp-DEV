@@ -44,28 +44,15 @@ pipeline {
                 '''
             }
         }
-
         stage('SonarQube Quality Gate Check') {
             steps {
                 echo 'Checking SonarQube quality gate...'
                 timeout(time: 1, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
-                }
+                waitForQualityGate abortPipeline: true
             }
+            echo 'SonarQube quality gate passed!'
+            }        
         }
-        stage('sonar Quality gate') {
-            steps {
-                script {
-                    def qg = waitForQualityGate()
-                    if (qg.status != 'OK') {
-                        error "Pipeline aborted due to SonarQube quality gate failure: ${qg.status}"
-                    } else {
-                        echo "SonarQube quality gate passed: ${qg.status}"
-                    }
-                }
-            }
-        }
-        
         stage("Tomcat Deployment - Copying WAR file to Tomcat") {
             steps {
                 echo 'Deploying WAR file to Tomcat...'
