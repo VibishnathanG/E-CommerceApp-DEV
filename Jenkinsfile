@@ -82,20 +82,21 @@ pipeline {
     post {
         always {
             echo 'Cleaning up...'
-            node {
-                sh '''
-                    rm -rf Devsecops-Pipeline*
-                    echo "Cleanup completed"  
-                '''
-            }
+            sh '''
+                echo "Removing Build directory..."
+                rm -rf E-CommerceApp-DEV
+                echo "Build directory removed successfully"
+            '''
         }
-
         success {
             echo 'Pipeline completed successfully!'
         }
-
         failure {
             echo 'Pipeline failed!'
         }
+    }
+    options {
+        timestamps()
+        disableConcurrentBuilds()
     }
 }
