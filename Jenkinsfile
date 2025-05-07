@@ -7,6 +7,9 @@ pipeline {
         SBOM_OUTPUT = 'sbom.json'
         TARGET_DIR = 'target'
         SONAR_HOST_URL = 'http://localhost:9000'
+        NEXUS_URL = 'http://10.0.14.233:8081'
+        NEXUS_REPO = 'maven-releases'
+        NEXUS_CREDENTIALS_ID = 'nexus-creds'
     }
 
     stages {
@@ -61,7 +64,19 @@ pipeline {
                 }
             }
         }
-
+        stage('upload Artifact to Nexus') {
+            steps {
+                echo 'Uploading artifact to Nexus...'
+                dir('E-CommerceApp-DEV') {
+                    withCredentials([usernamePassword(credentialsId: NEXUS_CREDENTIALS_ID, passwordVariable: 'NEXUS_PASS', usernameVariable: 'NEXUS_USER')]) {
+                        sh '''
+                            echo "Uploading WAR file to Nexus..."
+                            curl -v -u ${NEXUS_USER}:${NEXUS_PASS} --upload-file ${TARGET_DIR}/jakartaee9-servlet.war ${NEXUS_URL}/repository/${NEXUS_REPO}/jakartaee9-servlet.war
+                        '''
+                    }
+                }
+            }
+        }
         stage('Tomcat Deployment - Copying WAR file to Tomcat') {
             steps {
                 echo 'Deploying WAR file...'
@@ -84,6 +99,10 @@ pipeline {
         }
         success {
             echo 'Pipeline completed successfully.'
+            sh '''
+                PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
+                echo "Access the application at: http://${PUBLIC_IP}:8090/jakartaee9-servlet"
+            '''
         }
         failure {
             echo 'Pipeline failed.'
