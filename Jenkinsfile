@@ -4,7 +4,7 @@ pipeline {
         GIT_URL = 'https://github.com/VibishnathanG/E-CommerceApp-DEV.git'
         MAVEN_HOME = tool 'Default Maven'
         SBOM_OUTPUT = 'sbom.json'
-        TARGET_DIR = 'E-CommerceApp-DEV/target/'
+        TARGET_DIR = '/var/lib/jenkins/workspace/Devsecops-Pipeline/E-CommerceApp-DEV/reports/'
     }
     stages {
         stage('Git Pull Source Code') { 
@@ -33,6 +33,7 @@ pipeline {
         }
         stage('SBOM Scan With Trivy') {
             steps {
+                sh 'mkdir -p /var/lib/jenkins/workspace/Devsecops-Pipeline/E-CommerceApp-DEV/reports/'
                 sh 'trivy sbom --format cyclonedx --output "$SBOM_OUTPUT" "$TARGET_DIR"'
             }
         }
