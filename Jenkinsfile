@@ -33,9 +33,7 @@ pipeline {
         }
         stage('SBOM Scan With Trivy') {
             steps {
-                step{
-                    sh 'trivy sbom --format cyclonedx --output "$SBOM_OUTPUT" "$TARGET_DIR"'
-                }
+                sh 'trivy sbom --format cyclonedx --output "$SBOM_OUTPUT" "$TARGET_DIR"'
             }
         }
         stage('wait for SonarQube analysis') {
