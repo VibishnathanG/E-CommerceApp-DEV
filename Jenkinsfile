@@ -29,13 +29,12 @@ pipeline {
             steps {
                 echo 'Running SonarQube scan...'
                 dir('E-CommerceApp-DEV') {
-                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
+                    withSonarQubeEnv('SonarQube') {
                         sh '''
                             ${MAVEN_HOME} clean package verify sonar:sonar \
                             -Dsonar.projectKey=E-CommerceApp-DEV \
                             -Dsonar.projectName='E-CommerceApp-DEV' \
-                            -Dsonar.host.url=${SONAR_HOST_URL} \
-                            -Dsonar.login=${SONAR_TOKEN}
+                            -Dsonar.host.url=${SONAR_HOST_URL}
                         '''
                     }
                 }
@@ -67,17 +66,16 @@ pipeline {
             steps {
                 echo 'Deploying WAR file...'
                 sh '''
-                        echo "Stopping Tomcat..."
-                        sudo tomcatdown
-                        echo "Copying WAR..."
-                        sudo cp ${TARGET_DIR}/*.war /opt/tomcat/webapps/
-                        echo "Starting Tomcat..."
-                        sudo tomcatup
-                    '''
-                }
+                    echo "Stopping Tomcat..."
+                    sudo tomcatdown
+                    echo "Copying WAR..."
+                    sudo cp ${TARGET_DIR}/*.war /opt/tomcat/webapps/
+                    echo "Starting Tomcat..."
+                    sudo tomcatup
+                '''
             }
         }
-    
+    }
 
     post {
         always {
