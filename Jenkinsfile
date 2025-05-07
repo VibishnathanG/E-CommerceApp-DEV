@@ -1,6 +1,6 @@
 pipeline {
     agent any
-
+    customWorkspace '/var/lib/jenkins/custom_workspace/Devsecops-Pipeline'
     environment {
         GIT_URL = 'https://github.com/VibishnathanG/E-CommerceApp-DEV.git'
         MAVEN_HOME = tool 'Default Maven'
