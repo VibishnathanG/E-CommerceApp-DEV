@@ -40,7 +40,7 @@ pipeline {
                 sh '''
                     mkdir -p /var/lib/jenkins/workspace/Devsecops-Pipeline/reports/
                     for war in ${TARGET_DIR}/*.war; do
-                        trivy fs --format cyclonedx --output "/var/lib/jenkins/workspace/Devsecops-Pipeline/reports/${SBOM_OUTPUT}" "${TARGET_DIR}/*.war"
+                        trivy fs --format cyclonedx --output "/var/lib/jenkins/workspace/Devsecops-Pipeline/reports/${SBOM_OUTPUT}" "${TARGET_DIR}/jakartaee9-servlet.war"
                     done
                     cat /var/lib/jenkins/workspace/Devsecops-Pipeline/E-CommerceApp-DEV/reports/${SBOM_OUTPUT}" | jq
                 '''
