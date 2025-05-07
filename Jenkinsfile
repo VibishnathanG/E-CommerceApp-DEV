@@ -19,13 +19,11 @@ pipeline {
         }
         stage('Starting SAST Scan on SonarQube for E-CommerceApp-DEV') {
             steps {
-                step{
-                    echo 'Starting SAST scan...'
-                    def mvn = tool 'Default Maven'
-                    echo 'Starting SAST Scan on SonarQube...'
-                    withSonarQubeEnv('SonarQube') {
-                        sh "${mvn}/bin/mvn clean verify sonar:sonar -Dsonar.projectKey=E-CommerceApp-DEV -Dsonar.projectName='E-CommerceApp-DEV'"
-                }
+                echo 'Starting SAST scan...'
+                def mvn = tool 'Default Maven'
+                echo 'Starting SAST Scan on SonarQube...'
+                withSonarQubeEnv('SonarQube') {
+                    sh "${mvn}/bin/mvn clean verify sonar:sonar -Dsonar.projectKey=E-CommerceApp-DEV -Dsonar.projectName='E-CommerceApp-DEV'"
                 }
             }
         }
