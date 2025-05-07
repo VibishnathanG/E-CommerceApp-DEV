@@ -5,7 +5,7 @@ pipeline {
         GIT_URL = 'https://github.com/VibishnathanG/E-CommerceApp-DEV.git'
         MAVEN_HOME = tool 'Default Maven'
         SBOM_OUTPUT = 'sbom.json'
-        TARGET_DIR = '/var/lib/jenkins/workspace/Devsecops-Pipeline/E-CommerceApp-DEV/targets'
+        TARGET_DIR = '/var/lib/jenkins/workspace/Devsecops-Pipeline/targets'
     }
 
     stages {
@@ -38,9 +38,9 @@ pipeline {
             steps {
                 echo 'Running Trivy SBOM scan...'
                 sh '''
-                    mkdir -p /var/lib/jenkins/workspace/Devsecops-Pipeline/E-CommerceApp-DEV/reports/
+                    mkdir -p /var/lib/jenkins/workspace/Devsecops-Pipeline/reports/
                     for war in ${TARGET_DIR}/*.war; do
-                        trivy fs --format cyclonedx --output "/var/lib/jenkins/workspace/Devsecops-Pipeline/E-CommerceApp-DEV/reports/${SBOM_OUTPUT}" "$war"
+                        trivy fs --format cyclonedx --output "/var/lib/jenkins/workspace/Devsecops-Pipeline/reports/${SBOM_OUTPUT}" "${TARGET_DIR}/*.war"
                     done
                     cat /var/lib/jenkins/workspace/Devsecops-Pipeline/E-CommerceApp-DEV/reports/${SBOM_OUTPUT}" | jq
                 '''
@@ -55,6 +55,23 @@ pipeline {
                     def reportUrl = sonarReport.find(/(?<=reportUrl=).+/)
                     echo "SonarQube report URL: ${reportUrl}"
                 }
+            }
+        }
+
+        stage("Tomcat Deployment - Copying WAR file to Tomcat") {
+            steps {
+                echo 'Deploying WAR file to Tomcat...'
+                sh '''
+                    echo "Stopping Tomcat..."
+                    tomcatdown
+                    echo "Tomcat stopped successfully"
+                    echo "Copying WAR file to Tomcat..."
+                    cp ${TARGET_DIR}/*.war /opt/tomcat/webapps/
+                    echo "WAR file copied successfully"
+                    tomcatup
+                    echo "Tomcat started successfully"
+                    echo "Deployment completed successfully"
+                '''
             }
         }
     }
