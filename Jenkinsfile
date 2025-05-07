@@ -107,8 +107,7 @@ pipeline {
                 echo "Access the application at: http://${PUBLIC_IP}:8090/jakartaee9-servlet"
                 echo "Access the SonarQube report at: http://${SONAR_HOST_URL}/dashboard?id=E-CommerceApp-DEV"
                 echo "Access SBOM report at: http://${PUBLIC_IP}:8080/reports/${SBOM_OUTPUT}"
-                '''
-}
+                '''}
         failure {
             echo 'Pipeline failed.'
         }
@@ -119,3 +118,4 @@ pipeline {
         disableConcurrentBuilds()
     }
 }
+// This Jenkinsfile is designed to automate the build, test, and deployment process for the E-CommerceApp-DEV project.
