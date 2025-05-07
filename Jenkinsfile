@@ -94,7 +94,6 @@ pipeline {
                 '''
             }
         }
-    }
 
     post {
         always {
