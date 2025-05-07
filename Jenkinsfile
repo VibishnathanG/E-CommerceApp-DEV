@@ -29,7 +29,7 @@ pipeline {
         stage('Starting SAST Scan on SonarQube for E-CommerceApp-DEV') {
             steps {
                 echo 'Starting SAST scan...'
-                ls -lrt
+                sh 'ls -lrt'
                 withSonarQubeEnv('SonarQube') {
                     sh "${MAVEN_HOME} clean install verify sonar:sonar -Dsonar.projectKey=E-CommerceApp-DEV -Dsonar.projectName='E-CommerceApp-DEV'"
                 }
