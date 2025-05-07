@@ -1,11 +1,12 @@
 pipeline {
     agent any
+
     environment {
         GIT_URL = 'https://github.com/VibishnathanG/E-CommerceApp-DEV.git'
         MAVEN_HOME = tool 'Default Maven'
         SBOM_OUTPUT = 'sbom.json'
         TARGET_DIR = 'target'
-        SONAR_TOKEN = credentials('SonarQube')
+        SONAR_HOST_URL = 'http://localhost:9000'
     }
 
     stages {
@@ -14,14 +15,11 @@ pipeline {
                 echo 'Pulling source code...'
                 withCredentials([usernamePassword(credentialsId: 'git-creds', passwordVariable: 'GIT_PASS', usernameVariable: 'GIT_USER')]) {
                     sh '''
-                        pwd
-                        echo "Removing existing Build directory..."
+                        echo "Cleaning up previous workspace..."
                         rm -rf E-CommerceApp-DEV
-                        echo "Build directory removed successfully"
-                        git clone ${GIT_URL}
+                        git clone https://${GIT_USER}:${GIT_PASS}@github.com/VibishnathanG/E-CommerceApp-DEV.git
                         cd E-CommerceApp-DEV/
                         ls -lrt
-                        echo "Source code pulled successfully"
                     '''
                 }
             }
@@ -29,52 +27,54 @@ pipeline {
 
         stage('Starting SAST Scan on SonarQube for E-CommerceApp-DEV') {
             steps {
-                echo 'Starting SAST scan...'
-                sh '''
-                    ${MAVEN_HOME} clean package verify sonar:sonar \
-                    -Dsonar.projectKey=E-CommerceApp-DEV \
-                    -Dsonar.projectName='E-CommerceApp-DEV'
-                '''
+                echo 'Running SonarQube scan...'
+                dir('E-CommerceApp-DEV') {
+                    withCredentials([string(credentialsId: 'SonarQube', variable: 'SONAR_TOKEN')]) {
+                        sh '''
+                            ${MAVEN_HOME} clean package verify sonar:sonar \
+                            -Dsonar.projectKey=E-CommerceApp-DEV \
+                            -Dsonar.projectName='E-CommerceApp-DEV' \
+                            -Dsonar.host.url=${SONAR_HOST_URL} \
+                            -Dsonar.login=${SONAR_TOKEN}
+                        '''
+                    }
+                }
             }
         }
 
         stage('SBOM Scan With Trivy') {
             steps {
                 echo 'Running Trivy SBOM scan...'
-                sh '''
-                    pwd
-                    mkdir reports
-                    trivy fs --format cyclonedx --output "reports/${SBOM_OUTPUT}" "${TARGET_DIR}/jakartaee9-servlet.war"
-                    echo "SBOM scan completed successfully"
-                '''
+                dir('E-CommerceApp-DEV') {
+                    sh '''
+                        mkdir -p reports
+                        trivy fs --format cyclonedx --output "reports/${SBOM_OUTPUT}" "${TARGET_DIR}/jakartaee9-servlet.war"
+                    '''
+                }
             }
         }
 
         stage('SonarQube Quality Gate Check') {
             steps {
-                echo 'Checking SonarQube quality gate...'
+                echo 'Waiting for SonarQube quality gate...'
                 timeout(time: 5, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
-                echo 'SonarQube quality gate passed!'
             }
         }
 
-        stage("Tomcat Deployment - Copying WAR file to Tomcat") {
+        stage('Tomcat Deployment - Copying WAR file to Tomcat') {
             steps {
-                echo 'Deploying WAR file to Tomcat...'
+                echo 'Deploying WAR file...'
                 sh '''
-                    echo "Stopping Tomcat..."
-                    sudo tomcatdown
-                    echo "Tomcat stopped successfully"
-                    echo "Copying WAR file to Tomcat..."
-                    sudo cp ${TARGET_DIR}/*.war /opt/tomcat/webapps/
-                    echo "WAR file copied successfully"
-                    sudo tomcatup
-                    echo "Starting Tomcat..."
-                    echo "Tomcat started successfully"
-                    echo "Deployment completed successfully"
-                '''
+                        echo "Stopping Tomcat..."
+                        sudo tomcatdown
+                        echo "Copying WAR..."
+                        sudo cp ${TARGET_DIR}/*.war /opt/tomcat/webapps/
+                        echo "Starting Tomcat..."
+                        sudo tomcatup
+                    '''
+                }
             }
         }
     }
@@ -82,19 +82,16 @@ pipeline {
     post {
         always {
             echo 'Cleaning up...'
-            sh '''
-                echo "Removing Build directory..."
-                rm -rf E-CommerceApp-DEV
-                echo "Build directory removed successfully"
-            '''
+            sh 'rm -rf E-CommerceApp-DEV'
         }
         success {
-            echo 'Pipeline completed successfully!'
+            echo 'Pipeline completed successfully.'
         }
         failure {
-            echo 'Pipeline failed!'
+            echo 'Pipeline failed.'
         }
     }
+
     options {
         timestamps()
         disableConcurrentBuilds()
