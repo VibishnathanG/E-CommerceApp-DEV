@@ -5,6 +5,7 @@ pipeline {
         MAVEN_HOME = tool 'Default Maven'
         SBOM_OUTPUT = 'sbom.json'
         TARGET_DIR = 'target'
+        SONAR_TOKEN = credentials('SonarQube') // Add your SonarQube token here
     }
 
     stages {
@@ -30,7 +31,9 @@ pipeline {
             steps {
                 echo 'Starting SAST scan...'
                 sh '''
-                    ${MAVEN_HOME} clean package verify sonar:sonar -Dsonar.projectKey=E-CommerceApp-DEV -Dsonar.projectName='E-CommerceApp-DEV'
+                    ${MAVEN_HOME} clean package verify sonar:sonar \
+                    -Dsonar.projectKey=E-CommerceApp-DEV \
+                    -Dsonar.projectName='E-CommerceApp-DEV'
                 '''
             }
         }
@@ -50,7 +53,7 @@ pipeline {
         stage('SonarQube Quality Gate Check') {
             steps {
                 echo 'Checking SonarQube quality gate...'
-                timeout(time: 6, unit: 'MINUTES') {
+                timeout(time: 5, unit: 'MINUTES') {
                     waitForQualityGate abortPipeline: true
                 }
                 echo 'SonarQube quality gate passed!'
