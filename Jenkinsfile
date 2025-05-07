@@ -5,7 +5,7 @@ pipeline {
         MAVEN_HOME = tool 'Default Maven'
         SBOM_OUTPUT = 'sbom.json'
         TARGET_DIR = 'target'
-        SONAR_TOKEN = credentials('SonarQube') // Add your SonarQube token here
+        SONAR_TOKEN = credentials('SonarQube')
     }
 
     stages {
