@@ -31,8 +31,6 @@ pipeline {
                 echo 'Starting SAST scan...'
                 sh '''
                     ${MAVEN_HOME} clean package verify sonar:sonar -Dsonar.projectKey=E-CommerceApp-DEV -Dsonar.projectName='E-CommerceApp-DEV'
-                    cd  target
-                    ls -lrt
                 '''
             }
         }
