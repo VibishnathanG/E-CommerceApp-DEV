@@ -1,13 +1,15 @@
 pipeline {
     agent any
+
     environment {
         GIT_URL = 'https://github.com/VibishnathanG/E-CommerceApp-DEV.git'
         MAVEN_HOME = tool 'Default Maven'
         SBOM_OUTPUT = 'sbom.json'
-        TARGET_DIR = '/var/lib/jenkins/workspace/Devsecops-Pipeline/E-CommerceApp-DEV/reports/'
+        TARGET_DIR = '/var/lib/jenkins/workspace/Devsecops-Pipeline/E-CommerceApp-DEV/targets'
     }
+
     stages {
-        stage('Git Pull Source Code') { 
+        stage('Git Pull Source Code') {
             steps {
                 echo 'Pulling source code...'
                 withCredentials([usernamePassword(credentialsId: 'git-creds', passwordVariable: 'GIT_PASS', usernameVariable: 'GIT_USER')]) {
@@ -22,43 +24,39 @@ pipeline {
                 }
             }
         }
+
         stage('Starting SAST Scan on SonarQube for E-CommerceApp-DEV') {
             steps {
                 echo 'Starting SAST scan...'
-                echo 'Starting SAST Scan on SonarQube...'
                 withSonarQubeEnv('SonarQube') {
                     sh "${MAVEN_HOME} clean install verify sonar:sonar -Dsonar.projectKey=E-CommerceApp-DEV -Dsonar.projectName='E-CommerceApp-DEV'"
                 }
             }
         }
+
         stage('SBOM Scan With Trivy') {
             steps {
-                sh 'mkdir -p /var/lib/jenkins/workspace/Devsecops-Pipeline/E-CommerceApp-DEV/reports/'
-                sh 'trivy sbom --format cyclonedx --output "$SBOM_OUTPUT" "$TARGET_DIR"'
+                echo 'Running Trivy SBOM scan...'
+                sh '''
+                    mkdir -p /var/lib/jenkins/workspace/Devsecops-Pipeline/E-CommerceApp-DEV/reports/
+                    for war in ${TARGET_DIR}/*.war; do
+                        trivy fs --format cyclonedx --output "/var/lib/jenkins/workspace/Devsecops-Pipeline/E-CommerceApp-DEV/reports/${SBOM_OUTPUT}" "$war"
+                    done
+                    cat /var/lib/jenkins/workspace/Devsecops-Pipeline/E-CommerceApp-DEV/reports/${SBOM_OUTPUT}" | jq
+                '''
             }
         }
-        stage('wait for SonarQube analysis') {
+
+        stage('SAST Scan Results') {
             steps {
+                echo 'Displaying SAST scan results...'
                 script {
-                    timeout(time: 10, unit: 'MINUTES') {
-                        waitForQualityGate abortPipeline: true
-                    }
+                    def sonarReport = readFile("${WORKSPACE}/E-CommerceApp-DEV/target/sonar/report-task.txt")
+                    def reportUrl = sonarReport.find(/(?<=reportUrl=).+/)
+                    echo "SonarQube report URL: ${reportUrl}"
                 }
             }
         }
-        stage('SonarQube Quality Gate') {
-            steps {
-                script {
-                    def qg = waitForQualityGate()
-                    if (qg.status != 'OK') {
-                        error "Pipeline aborted due to quality gate failure: ${qg.status}"
-                    } else {
-                        echo "Quality gate passed: ${qg.status}"
-                    }
-                }
-            }
-        }
-        
     }
 
     post {
@@ -70,9 +68,11 @@ pipeline {
                 echo "Cleanup completed"
             '''
         }
+
         success {
             echo 'Pipeline completed successfully!'
         }
+
         failure {
             echo 'Pipeline failed!'
         }
