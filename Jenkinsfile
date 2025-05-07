@@ -16,6 +16,7 @@ pipeline {
                         pwd
                         echo "Removing existing Build directory..."
                         rm -rf Devsecops-Pipeline/*
+                        ls -lrt
                         echo "Build directory removed successfully"
                         git clone ${GIT_URL}
                         cd E-CommerceApp-DEV/
