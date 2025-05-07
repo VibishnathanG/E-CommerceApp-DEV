@@ -2,6 +2,7 @@ pipeline {
     agent any
     environment {
         GIT_URL = 'https://github.com/VibishnathanG/E-CommerceApp-DEV.git'
+        MAVEN_HOME = tool 'Default Maven'
     }
     stages {
         stage('Git Pull Source Code') { 
@@ -20,10 +21,9 @@ pipeline {
         stage('Starting SAST Scan on SonarQube for E-CommerceApp-DEV') {
             steps {
                 echo 'Starting SAST scan...'
-                def mvn = tool 'Default Maven'
                 echo 'Starting SAST Scan on SonarQube...'
                 withSonarQubeEnv('SonarQube') {
-                    sh "${mvn}/bin/mvn clean verify sonar:sonar -Dsonar.projectKey=E-CommerceApp-DEV -Dsonar.projectName='E-CommerceApp-DEV'"
+                    sh "${MAVEN_HOME}/bin/mvn clean verify sonar:sonar -Dsonar.projectKey=E-CommerceApp-DEV -Dsonar.projectName='E-CommerceApp-DEV'"
                 }
             }
         }
