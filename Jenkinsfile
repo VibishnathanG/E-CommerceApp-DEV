@@ -15,12 +15,14 @@ pipeline {
                 echo 'Pulling source code...'
                 withCredentials([usernamePassword(credentialsId: 'git-creds', passwordVariable: 'GIT_PASS', usernameVariable: 'GIT_USER')]) {
                     sh '''
+                        pwd
                         echo "Removing existing Build directory..."
                         #git clone https://${GIT_USER}:${GIT_PASS}@${GIT_URL#https://}
                         git clone ${GIT_URL}
                         cd E-CommerceApp-DEV/
                         ls -lrt
                         echo "Source code pulled successfully"
+                        pwd
                     '''
                 }
             }
@@ -33,15 +35,18 @@ pipeline {
                 withSonarQubeEnv('SonarQube') {
                     sh "${MAVEN_HOME} clean install verify sonar:sonar -Dsonar.projectKey=E-CommerceApp-DEV -Dsonar.projectName='E-CommerceApp-DEV'"
                 }
+                sh 'ls -lrt'
             }
         }
 
         stage('SBOM Scan With Trivy') {
             steps {
                 echo 'Running Trivy SBOM scan...'
+                sh 'ls -lrt'
+                sh 'pwd'
                 sh '''
-                    mkdir -p /var/lib/jenkins/workspace/Devsecops-Pipeline/reports/
-                    trivy fs --format cyclonedx --output "/var/lib/jenkins/workspace/Devsecops-Pipeline/reports/${SBOM_OUTPUT}" "${TARGET_DIR}/jakartaee9-servlet.war"
+                    mkdir reports
+                    trivy fs --format cyclonedx --output "reports/${SBOM_OUTPUT}" "${TARGET_DIR}/jakartaee9-servlet.war"
                     echo "SBOM scan completed successfully"
                 '''
             }
