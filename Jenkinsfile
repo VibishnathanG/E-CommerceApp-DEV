@@ -41,7 +41,6 @@ pipeline {
                     mkdir -p /var/lib/jenkins/workspace/Devsecops-Pipeline/reports/
                     trivy fs --format cyclonedx --output "/var/lib/jenkins/workspace/Devsecops-Pipeline/reports/${SBOM_OUTPUT}" "${TARGET_DIR}/jakartaee9-servlet.war"
                     echo "SBOM scan completed successfully"
-                    cat /var/lib/jenkins/workspace/Devsecops-Pipeline/E-CommerceApp-DEV/reports/${SBOM_OUTPUT}" | jq
                 '''
             }
         }
