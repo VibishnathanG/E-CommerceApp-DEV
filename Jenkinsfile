@@ -72,12 +72,13 @@ pipeline {
                 dir('Devsecops-Pipeline/E-CommerceApp-DEV') {
                     sh '''
                         echo "Stopping Tomcat..."
-                        tomcatdown
+                        /opt/tomcat/bin/shutdown.sh || true
                         echo "Tomcat stopped successfully"
                         echo "Copying WAR file to Tomcat..."
                         cp ${TARGET_DIR}/*.war /opt/tomcat/webapps/
                         echo "WAR file copied successfully"
-                        tomcatup
+                        /opt/tomcat/bin/startup.sh
+                        echo "Starting Tomcat..."
                         echo "Tomcat started successfully"
                         echo "Deployment completed successfully"
                     '''
