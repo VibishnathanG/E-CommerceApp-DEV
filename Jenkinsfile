@@ -77,7 +77,7 @@ pipeline {
             echo 'Cleaning up...'
             sh '''
                 cd /var/lib/jenkins/workspace/Devsecops-Pipeline
-                rm -rf E-CommerceApp-DEV
+                #rm -rf E-CommerceApp-DEV
                 echo "Cleanup completed"
             '''
         }
