@@ -71,7 +71,7 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: NEXUS_CREDENTIALS_ID, passwordVariable: 'NEXUS_PASS', usernameVariable: 'NEXUS_USER')]) {
                         sh '''
                             echo "Uploading WAR file to Nexus..."
-                            curl -v -u ${NEXUS_USER}:${NEXUS_PASS} --upload-file ${TARGET_DIR}/jakartaee9-servlet.war http://13.233.73.72:8081/repository/maven-releases/
+                            curl -v -u ${NEXUS_USER}:${NEXUS_PASS} --upload-file ${TARGET_DIR}/jakartaee9-servlet.war ${NEXUS_URL}/${NEXUS_REPO}/com/microsoft/example/jakartaee9-servlet/1.0.0/jakartaee9-servlet-1.0.0.war
                         '''
                     }
                 }
@@ -98,12 +98,14 @@ pipeline {
             sh 'rm -rf E-CommerceApp-DEV'
         }
         success {
-            echo 'Pipeline completed successfully.'
-            sh '''
-                PUBLIC_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
+                echo 'Pipeline completed successfully.'
+                sh '''
+                PUBLIC_IP=$(curl -s https://checkip.amazonaws.com)
                 echo "Access the application at: http://${PUBLIC_IP}:8090/jakartaee9-servlet"
-            '''
-        }
+                echo "Access the SonarQube report at: http://${SONAR_HOST_URL}/dashboard?id=E-CommerceApp-DEV"
+                echo "Access SBOM report at: http://{PUBLIC_IP}:8080/reports/${SBOM_OUTPUT}"
+                '''
+}
         failure {
             echo 'Pipeline failed.'
         }
