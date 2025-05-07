@@ -31,3 +31,21 @@ pipeline{
         }
     }
 }
+    }
+}
+post {
+    always {
+        echo 'Cleaning up...'
+        sh '''
+            cd E-CommerceApp-DEV
+            rm -rf .git
+            echo "Cleanup completed"
+        '''
+    }
+    success {
+        echo 'Pipeline completed successfully!'
+    }
+    failure {
+        echo 'Pipeline failed!'
+    }
+}
