@@ -10,24 +10,6 @@ terraform {
     dynamodb_table = "terraform-lock-table" # DynamoDB table for state locking
   }
 }
-
-# Create DynamoDB table for state locking
-resource "aws_dynamodb_table" "terraform_lock_table" {
-  name         = "terraform-lock-table"
-  billing_mode = "PAY_PER_REQUEST"
-  hash_key     = "LockID"
-
-  attribute {
-    name = "LockID"
-    type = "S"
-  }
-
-  tags = {
-    Name        = "Terraform Lock Table"
-    Environment = "DevSecOps"
-  }
-}
-
 # Create EC2 instance for Tomcat server
 resource "aws_instance" "tomcat_server" {
   ami                         = "ami-0f1dcc636b69a6438"
