@@ -1,2 +1,4 @@
 .vscode
 target/
+.terraform.lock.hcl
+.terraform
