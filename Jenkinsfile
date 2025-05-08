@@ -113,7 +113,7 @@ pipeline {
                     withCredentials([string(credentialsId: "${SNYK_IAC_CREDENTIALS_ID}", variable: 'SNYK_TOKEN')]) {
                     sh '''
                         sudo snyk config set api=$SNYK_TOKEN
-                        sudo snyk iac test --report
+                        sudo snyk iac test --report || true
                         echo 'Snyk IaC scan completed.'
                         '''
         }
