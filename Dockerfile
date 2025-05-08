@@ -1,5 +1,5 @@
 # Base image with Tomcat 10
-FROM tomcat:10.1-jdk17-temporal
+FROM tomcat:10-jdk17-corretto
 
 # Maintainer info (optional)
 LABEL maintainer="vibishnathan"
