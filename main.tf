@@ -24,8 +24,8 @@ resource "aws_instance" "tomcat_server" {
   }
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/startup.sh",
-      "/tmp/startup.sh",
+      "sudo chmod +x /tmp/startup.sh",
+      "sudo /tmp/startup.sh",
     ]
   }
   
