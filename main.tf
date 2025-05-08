@@ -12,14 +12,14 @@ resource "aws_instance" "tomcat_server" {
   }
   key_name = "ap-south-keypair"
   provisioner "file" {
-    source      = "startup.sh" # Replace with the path to your script
-    destination = "/tmp/tomcat-install-script.sh"
+    source      = "startup.sh" 
+    destination = "/tmp/startup.sh"
     
   }
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/tomcat-install-script.sh",
-      "/tmp/tomcat-install-script.sh"
+      "chmod +x /tmp/startup.sh",
+      "/tmp/startup.sh",
     ]
   }
   
