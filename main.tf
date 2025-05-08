@@ -10,7 +10,13 @@ resource "aws_instance" "tomcat_server" {
   tags = {
     Name = "TomcatServer"
   }
-  key_name = "ap-south-keypair"
+  key_name = "terraform-keypair"
+  connection {
+    type        = "ssh"
+    host        = self.public_ip
+    user        = "ec2-user"
+    private_key = file("~/.ssh/terraform-keypair.pem") # Replace with the path to your private key
+  }
   provisioner "file" {
     source      = "startup.sh" 
     destination = "/tmp/startup.sh"
