@@ -10,7 +10,7 @@ pipeline {
         NEXUS_URL = 'http://10.0.14.233:8081'
         NEXUS_REPO = '/repository/maven-releases/'
         NEXUS_CREDENTIALS_ID = 'nexus-creds'
-        DOCKER_BUILD_NAME = 'jakartaee9-app'
+        DOCKER_BUILD_NAME = 'tomcat-app'
         SYNK_IAC_CREDENTIALS_ID = 'snyk-token'
         DOCKER_CREDENTIALS_ID = 'docker-creds'
     }
