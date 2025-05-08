@@ -141,7 +141,6 @@ pipeline {
             echo 'Pipeline completed successfully.'
             sh '''
                 PUBLIC_IP=$(curl -s https://checkip.amazonaws.com)
-                echo "Access the application at: http://${PUBLIC_IP}:8090/jakartaee9-servlet"
                 echo "Access the SonarQube report at: http://${SONAR_HOST_URL}/dashboard?id=E-CommerceApp-DEV"
                 echo "Access SBOM report at: http://${PUBLIC_IP}:8080/reports/${SBOM_OUTPUT}"
             '''
