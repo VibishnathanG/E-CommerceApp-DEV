@@ -91,7 +91,7 @@ pipeline {
                     echo 'Building Docker image...'
                     sudo docker build -t ${DOCKER_BUILD_NAME} .
                     sudo docker image tag tomcat-app vibishnathang/vibish-ops-repo:tomcat-app
-                    sudodocker push vibishnathang/vibish-ops-repo:tomcat-app
+                    sudo docker push vibishnathang/vibish-ops-repo:tomcat-app
                     echo 'Docker image built and pushed successfully.'
                 '''
             }
