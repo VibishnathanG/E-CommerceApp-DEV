@@ -89,9 +89,9 @@ pipeline {
             steps {
                 sh '''
                     echo 'Building Docker image...'
-                    docker build -t ${DOCKER_BUILD_NAME} .
-                    docker image tag tomcat-app vibishnathang/vibish-ops-repo:tomcat-app
-                    docker push vibishnathang/vibish-ops-repo:tomcat-app
+                    sudo docker build -t ${DOCKER_BUILD_NAME} .
+                    sudo docker image tag tomcat-app vibishnathang/vibish-ops-repo:tomcat-app
+                    sudodocker push vibishnathang/vibish-ops-repo:tomcat-app
                     echo 'Docker image built and pushed successfully.'
                 '''
             }
@@ -101,7 +101,7 @@ pipeline {
             steps {
                 echo 'Running Trivy image scan...'
                 sh '''
-                    trivy image --format json --output "reports/trivy-image-scan.json" vibishnathang/vibish-ops-repo:tomcat-app
+                    sudo trivy image --format json --output "reports/trivy-image-scan.json" vibishnathang/vibish-ops-repo:tomcat-app
                     echo 'Trivy image scan completed.'
                 '''
             }
@@ -111,7 +111,7 @@ pipeline {
             steps {
                 echo 'Displaying Trivy image scan report...'
                 sh '''
-                    cat reports/trivy-image-scan.json
+                    sudo cat reports/trivy-image-scan.json
                     echo 'Trivy image scan report displayed.'
                 '''
             }
@@ -123,8 +123,8 @@ pipeline {
                 dir('E-CommerceApp-DEV') {
                     withCredentials([string(credentialsId: ${SYNK_IAC_CREDENTIALS_ID}, variable: 'SNYK_TOKEN')]) {
                         sh '''
-                            snyk config set api=$SNYK_TOKEN
-                            snyk iac test --report
+                            sudo snyk config set api=$SNYK_TOKEN
+                            sudo snyk iac test --report
                             echo 'Snyk IaC scan completed.'
                         '''
                     }
@@ -136,8 +136,8 @@ pipeline {
             steps {
                 sh '''
                     echo "Setting up Tomcat server on EC2 with Terraform..."
-                    terraform init
-                    terraform apply -auto-approve
+                    sudo terraform init
+                    sudo terraform apply -auto-approve
                     echo "Tomcat server setup completed."
                 '''
             }
