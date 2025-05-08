@@ -101,6 +101,7 @@ pipeline {
             steps {
                 echo 'Running Trivy image scan...'
                 sh '''
+                    sudo mkdir -p reports
                     sudo trivy image --format json --output "reports/trivy-image-scan.json" vibishnathang/vibish-ops-repo:tomcat-app
                     echo 'Trivy image scan completed.'
                 '''
