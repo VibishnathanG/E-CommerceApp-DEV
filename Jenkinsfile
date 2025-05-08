@@ -107,19 +107,18 @@ pipeline {
                 '''
             }
         }
-
         stage('Scanning IAC Code with Snyk and pushing to DB') {
-            steps {
-                echo 'Running Snyk IaC scan...'
-                    withCredentials([string(credentialsId: ${SNYK_IAC_CREDENTIALS_ID}, variable: 'SNYK_TOKEN')]) {
-                        sh '''
-                            sudo snyk config set api=$SNYK_TOKEN
-                            sudo snyk iac test --report
-                            echo 'Snyk IaC scan completed.'
+                steps {
+                    echo 'Running Snyk IaC scan...'
+                    withCredentials([string(credentialsId: "${SNYK_IAC_CREDENTIALS_ID}", variable: 'SNYK_TOKEN')]) {
+                    sh '''
+                        sudo snyk config set api=$SNYK_TOKEN
+                        sudo snyk iac test --report
+                        echo 'Snyk IaC scan completed.'
                         '''
-                }
-            }
         }
+    }
+}
 
         stage('Setting up Tomcat Server on EC2 with terraform') {
             steps {
