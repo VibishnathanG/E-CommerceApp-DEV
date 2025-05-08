@@ -11,6 +11,8 @@ pipeline {
         NEXUS_REPO = '/repository/maven-releases/'
         NEXUS_CREDENTIALS_ID = 'nexus-creds'
         DOCKER_BUILD_NAME = 'jakartaee9-app'
+        SYNK_IAC_CREDENTIALS_ID = 'snyk-token'
+        DOCKER_CREDENTIALS_ID = 'docker-creds'
     }
 
     stages {
@@ -119,7 +121,7 @@ pipeline {
             steps {
                 echo 'Running Snyk IaC scan...'
                 dir('E-CommerceApp-DEV') {
-                    withCredentials([string(credentialsId: 'snyk-token', variable: 'SNYK_TOKEN')]) {
+                    withCredentials([string(credentialsId: ${SYNK_IAC_CREDENTIALS_ID}, variable: 'SNYK_TOKEN')]) {
                         sh '''
                             snyk config set api=$SNYK_TOKEN
                             snyk iac test --report
