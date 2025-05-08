@@ -74,8 +74,9 @@ pipeline {
                         sh '''
                             echo "Uploading WAR file to Nexus..."
                             ls -lrt
-                            echo "WAR file path: ${TARGET_DIR}/jakartaee9-servlet.war"
-                            curl -v -u admin:vibishnathan --upload-file target/jakartaee9-servlet.war http://13.233.73.72:8081/repository/maven-releases/com/microsoft/example/jakartaee9-servlet/1.0.2/jakartaee9-servlet-1.0.2.war
+                            curl -v -u ${NEXUS_USER}:${NEXUS_PASS} \
+                            --upload-file ${TARGET_DIR}/jakartaee9-servlet.war \
+                            ${NEXUS_URL}/repository/maven-releases/com/microsoft/example/jakartaee9-servlet/1.0.2/jakartaee9-servlet-1.0.2.war
                         '''
                     }
                 }
@@ -83,14 +84,13 @@ pipeline {
         }
 
         stage('Docker Image Build') {
-            steps{
+            steps {
                 sh '''
-                echo 'Building Docker image...'
-                docker build -t ${DOCKER_BUILD_NAME} .
-                docker image tag tomcat-app vibishnathang/vibish-ops-repo:tomcat-app
-                docker push vibishnathang/vibish-ops-repo:tomcat-app
-                echo 'Docker image built and pushed successfully.'
-                echo 'Image can be used to deploy the application. with Following Command ::: docker push vibishnathang/vibish-ops-repo:tomcat-app'
+                    echo 'Building Docker image...'
+                    docker build -t ${DOCKER_BUILD_NAME} .
+                    docker image tag tomcat-app vibishnathang/vibish-ops-repo:tomcat-app
+                    docker push vibishnathang/vibish-ops-repo:tomcat-app
+                    echo 'Docker image built and pushed successfully.'
                 '''
             }
         }
@@ -104,7 +104,7 @@ pipeline {
                 '''
             }
         }
-        
+
         stage('Displaying Trivy Image Scan Report') {
             steps {
                 echo 'Displaying Trivy image scan report...'
@@ -115,41 +115,31 @@ pipeline {
             }
         }
 
-        stage('Scanning IAC Code with Synk') {
+        stage('Scanning IAC Code with Snyk and pushing to DB') {
             steps {
                 echo 'Running Snyk IaC scan...'
                 dir('E-CommerceApp-DEV') {
-                    sh '''
-                        snyk iac test --all-projects --json-file-output=reports/snyk-iac-scan.json
-                        echo 'Snyk IaC scan completed.'
-                    '''
+                    withCredentials([string(credentialsId: 'snyk-token', variable: 'SNYK_TOKEN')]) {
+                        sh '''
+                            snyk config set api=$SNYK_TOKEN
+                            snyk iac test --report
+                            echo 'Snyk IaC scan completed.'
+                        '''
+                    }
                 }
             }
         }
-        stage('Pushing Snyk report to synk dashboard') {
-            steps {
-                echo 'Pushing Snyk report to Snyk dashboard...'
-                dir('E-CommerceApp-DEV') {
-                    sh '''
-                        snyk monitor --all-projects --json-file-output=reports/snyk-iac-scan.json
-                        echo 'Snyk report pushed to Snyk dashboard.'
-                    '''
-                }
-            }
-        }
-        stage('Setting up Tomcat Server on EC2 with terraform'){
 
+        stage('Setting up Tomcat Server on EC2 with terraform') {
             steps {
                 sh '''
                     echo "Setting up Tomcat server on EC2 with Terraform..."
-                    ls -lrt
                     terraform init
                     terraform apply -auto-approve
                     echo "Tomcat server setup completed."
                 '''
             }
         }
-        
     }
 
     post {
