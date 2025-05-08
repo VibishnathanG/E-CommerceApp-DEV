@@ -10,6 +10,7 @@ pipeline {
         NEXUS_URL = 'http://10.0.14.233:8081'
         NEXUS_REPO = '/repository/maven-releases/'
         NEXUS_CREDENTIALS_ID = 'nexus-creds'
+        DOCKER_BUILD_NAME = 'jakartaee9-app'
     }
 
     stages {
@@ -81,19 +82,74 @@ pipeline {
             }
         }
 
-        stage('Tomcat Deployment - Copying WAR file to Tomcat') {
-            steps {
-                echo 'Deploying WAR file...'
+        stage('Docker Image Build') {
+            steps{
                 sh '''
-                    echo "Stopping Tomcat..."
-                    sudo tomcatdown
-                    echo "Copying WAR..."
-                    sudo cp ${TARGET_DIR}/*.war /opt/tomcat/webapps/
-                    echo "Starting Tomcat..."
-                    sudo tomcatup
+                echo 'Building Docker image...'
+                docker build -t ${DOCKER_BUILD_NAME} .
+                docker image tag tomcat-app vibishnathang/vibish-ops-repo:tomcat-app
+                docker push vibishnathang/vibish-ops-repo:tomcat-app
+                echo 'Docker image built and pushed successfully.'
+                echo 'Image can be used to deploy the application. with Following Command ::: docker push vibishnathang/vibish-ops-repo:tomcat-app'
                 '''
             }
         }
+
+        stage('Trivy Image Scan') {
+            steps {
+                echo 'Running Trivy image scan...'
+                sh '''
+                    trivy image --format json --output "reports/trivy-image-scan.json" vibishnathang/vibish-ops-repo:tomcat-app
+                    echo 'Trivy image scan completed.'
+                '''
+            }
+        }
+        
+        stage('Displaying Trivy Image Scan Report') {
+            steps {
+                echo 'Displaying Trivy image scan report...'
+                sh '''
+                    cat reports/trivy-image-scan.json
+                    echo 'Trivy image scan report displayed.'
+                '''
+            }
+        }
+
+        stage('Scanning IAC Code with Synk') {
+            steps {
+                echo 'Running Snyk IaC scan...'
+                dir('E-CommerceApp-DEV') {
+                    sh '''
+                        snyk iac test --all-projects --json-file-output=reports/snyk-iac-scan.json
+                        echo 'Snyk IaC scan completed.'
+                    '''
+                }
+            }
+        }
+        stage('Pushing Snyk report to synk dashboard') {
+            steps {
+                echo 'Pushing Snyk report to Snyk dashboard...'
+                dir('E-CommerceApp-DEV') {
+                    sh '''
+                        snyk monitor --all-projects --json-file-output=reports/snyk-iac-scan.json
+                        echo 'Snyk report pushed to Snyk dashboard.'
+                    '''
+                }
+            }
+        }
+        stage('Setting up Tomcat Server on EC2 with terraform'){
+
+            steps {
+                sh '''
+                    echo "Setting up Tomcat server on EC2 with Terraform..."
+                    ls -lrt
+                    terraform init
+                    terraform apply -auto-approve
+                    echo "Tomcat server setup completed."
+                '''
+            }
+        }
+        
     }
 
     post {
