@@ -44,6 +44,15 @@ pipeline {
             }
         }
 
+        stage('SonarQube Quality Gate Check') {
+            steps {
+                echo 'Waiting for SonarQube quality gate...'
+                timeout(time: 5, unit: 'MINUTES') {
+                    waitForQualityGate abortPipeline: true
+                }
+            }
+        }
+
         stage('SBOM Scan With Trivy') {
             steps {
                 echo 'Running Trivy SBOM scan...'
@@ -52,15 +61,6 @@ pipeline {
                         mkdir -p reports
                         trivy fs --format cyclonedx --output "reports/${SBOM_OUTPUT}" "${TARGET_DIR}/jakartaee9-servlet.war"
                     '''
-                }
-            }
-        }
-
-        stage('SonarQube Quality Gate Check') {
-            steps {
-                echo 'Waiting for SonarQube quality gate...'
-                timeout(time: 5, unit: 'MINUTES') {
-                    waitForQualityGate abortPipeline: true
                 }
             }
         }
